@@ -1,95 +1,82 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+// Dynamic imports — all client-only
+const LoadingScreen = dynamic(() => import('../components/LoadingScreen'),           { ssr: false });
+const Cursor        = dynamic(() => import('../components/Cursor'),                  { ssr: false });
+const Navigation    = dynamic(() => import('../components/Navigation'),              { ssr: false });
+const Hero          = dynamic(() => import('../components/scenes/Hero'),             { ssr: false });
+const Identity      = dynamic(() => import('../components/scenes/Identity'),         { ssr: false });
+const Work          = dynamic(() => import('../components/scenes/Work'),             { ssr: false });
+const Skills        = dynamic(() => import('../components/scenes/Skills'),           { ssr: false });
+const Timeline      = dynamic(() => import('../components/scenes/Timeline'),         { ssr: false });
+const Contact       = dynamic(() => import('../components/scenes/Contact'),          { ssr: false });
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [loaded, setLoaded] = useState(false);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  // Initialize Lenis + GSAP ScrollTrigger bridge
+  useEffect(() => {
+    if (!loaded) return;
+
+    let lenis;
+
+    const init = async () => {
+      const LenisModule  = await import('@studio-freight/lenis');
+      const { gsap }     = await import('gsap');
+      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      const Lenis = LenisModule.default || LenisModule.Lenis;
+
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smooth: true,
+        smoothTouch: false,
+        touchMultiplier: 2,
+      });
+
+      // Store globally so scenes can use lenis.scrollTo()
+      window.__lenis = lenis;
+
+      // Bridge Lenis → GSAP ScrollTrigger
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add((time) => lenis.raf(time * 1000));
+      gsap.ticker.lagSmoothing(0);
+
+      ScrollTrigger.refresh();
+    };
+
+    init();
+
+    return () => {
+      if (lenis) {
+        lenis.destroy();
+        delete window.__lenis;
+      }
+    };
+  }, [loaded]);
+
+  return (
+    <>
+      <LoadingScreen onComplete={() => setLoaded(true)} />
+      <Cursor />
+      {loaded && (
+        <>
+          <Navigation />
+          <main id="main-content">
+            <Hero />
+            <Identity />
+            <Work />
+            <Skills />
+            <Timeline />
+            <Contact />
+          </main>
+        </>
+      )}
+    </>
   );
 }
