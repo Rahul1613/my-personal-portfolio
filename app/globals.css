@@ -1,6 +1,28 @@
 /* ================================================================
-   RAHUL SISODE — V3 DIRECTOR'S CUT
+   TAILWIND DIRECTIVES
    ================================================================ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================================
+   RAHUL SISODE — MULTI-PERSONA PORTFOLIO
+   ================================================================ */
+
+/* Persona accent CSS variables — dynamically updated by JS */
+:root {
+  --accent-from: #E8FF00;
+  --accent-to: #C4B49A;
+  --accent-mid: #E8FF00;
+  --font-grotesk: 'Space Grotesk', system-ui, sans-serif;
+}
+
+/* Tailwind body override */
+@layer base {
+  body {
+    @apply bg-[#0A0B0D] text-[#F2F3F5];
+  }
+}
 
 /* ── RESET ─────────────────────────────────────────────────────── */
 *, *::before, *::after {

@@ -1,5 +1,5 @@
 import './globals.css';
-import { Bebas_Neue, DM_Sans, DM_Mono } from 'next/font/google';
+import { Bebas_Neue, DM_Sans, DM_Mono, Space_Grotesk } from 'next/font/google';
 
 const bebas = Bebas_Neue({
   weight: '400',
@@ -22,22 +22,29 @@ const dmMono = DM_Mono({
   display: 'swap',
 });
 
+const spaceGrotesk = Space_Grotesk({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-grotesk',
+  display: 'swap',
+});
+
 export const metadata = {
-  title: 'Rahul Sisode — AI & Full Stack Developer',
+  title: 'Rahul Hiratsingh Sisode — Developer · Marketer · Security',
   description:
-    'Building intelligent systems. From database schema to deployment — every layer, end to end.',
-  keywords: ['AI Developer', 'Full Stack', 'React', 'Django', 'Machine Learning', 'Portfolio'],
-  authors: [{ name: 'Rahul Sisode' }],
+    '3 self-shipped products. 4 real internships. Zero fluff. Explore Rahul\'s portfolio through Developer, Marketer, or Security Analyst lenses.',
+  keywords: ['AI Developer', 'Full Stack', 'React', 'Django', 'Security', 'Marketing', 'Portfolio'],
+  authors: [{ name: 'Rahul Hiratsingh Sisode' }],
   openGraph: {
-    title: 'Rahul Sisode — AI & Full Stack Developer',
-    description: 'Building intelligent systems. End to end.',
+    title: 'Rahul Hiratsingh Sisode — Choose Your Path',
+    description: '3 self-shipped products. 4 real internships. Zero fluff.',
     type: 'website',
   },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${bebas.variable} ${dmSans.variable} ${dmMono.variable}`}>
+    <html lang="en" className={`${bebas.variable} ${dmSans.variable} ${dmMono.variable} ${spaceGrotesk.variable}`}>
       <body>{children}</body>
     </html>
   );
