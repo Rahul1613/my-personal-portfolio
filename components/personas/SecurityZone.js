@@ -1,28 +1,53 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { PROJECTS, SECURITY_SKILLS, SECURITY_LEARNING } from '../../lib/resumeData';
+import { SECURITY_SKILLS, SECURITY_LEARNING } from '../../lib/resumeData';
+
+const ACCENT = '#10B981';
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 24 },
   show:   { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
 };
 
-// ── Radar / Spider Chart (pure SVG) ──────────────────────────────────────────────────
+function GlassCard({ children, style = {}, hoverAccent = ACCENT }) {
+  return (
+    <div
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: '16px',
+        transition: 'border-color 0.25s, box-shadow 0.25s',
+        ...style,
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = `${hoverAccent}30`;
+        e.currentTarget.style.boxShadow = `0 0 30px ${hoverAccent}10`;
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ── SVG Radar Chart ──────────────────────────────────────────────────
 function RadarChart() {
-  const canvasRef = useRef(null);
   const AXES = [
     { label: 'Security Fundamentals', value: 75 },
-    { label: 'AI for Security',        value: 85 },
-    { label: 'Systems & Networking',   value: 60 },
-    { label: 'Programming',            value: 80 },
+    { label: 'AI for Security', value: 85 },
+    { label: 'Systems & Networking', value: 60 },
+    { label: 'Programming', value: 80 },
   ];
 
-  const SIZE = 220;
+  const SIZE = 240;
   const CENTER = SIZE / 2;
-  const RADIUS = 80;
+  const RADIUS = 88;
   const n = AXES.length;
-
   const angleStep = (2 * Math.PI) / n;
   const startAngle = -Math.PI / 2;
 
@@ -32,27 +57,13 @@ function RadarChart() {
   };
 
   const gridLevels = [25, 50, 75, 100];
-
   const dataPoints = AXES.map((a, i) => getPoint(i, (a.value / 100) * RADIUS));
   const dataPath = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0]},${p[1]}`).join(' ') + ' Z';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.7, ease: 'easeOut' }}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '80px' }}
-    >
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', letterSpacing: '0.2em', marginBottom: '8px' }}>
-        // SKILL RADAR
-      </p>
-      <h3 style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(28px, 4vw, 48px)', color: '#F2F3F5', marginBottom: '32px', fontWeight: '700' }}>
-        Competency Map
-      </h3>
-
+    <GlassCard style={{ padding: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: ACCENT, letterSpacing: '0.15em', marginBottom: '20px', alignSelf: 'flex-start' }}>COMPETENCY MAP</p>
       <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} style={{ overflow: 'visible' }}>
-        {/* Grid circles */}
         {gridLevels.map(level => (
           <polygon
             key={level}
@@ -61,232 +72,132 @@ function RadarChart() {
               return `${x},${y}`;
             }).join(' ')}
             fill="none"
-            stroke="rgba(16,185,129,0.15)"
+            stroke="rgba(16,185,129,0.12)"
             strokeWidth="1"
           />
         ))}
-
-        {/* Axis lines */}
         {AXES.map((_, i) => {
           const [x, y] = getPoint(i, RADIUS);
-          return <line key={i} x1={CENTER} y1={CENTER} x2={x} y2={y} stroke="rgba(16,185,129,0.2)" strokeWidth="1" />;
+          return <line key={i} x1={CENTER} y1={CENTER} x2={x} y2={y} stroke="rgba(16,185,129,0.15)" strokeWidth="1" />;
         })}
-
-        {/* Data polygon */}
         <motion.path
           d={dataPath}
-          fill="rgba(16,185,129,0.2)"
-          stroke="#10B981"
+          fill="rgba(16,185,129,0.15)"
+          stroke={ACCENT}
           strokeWidth="2"
           initial={{ pathLength: 0, opacity: 0 }}
           whileInView={{ pathLength: 1, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.2, ease: 'easeOut' }}
         />
-
-        {/* Data points */}
         {dataPoints.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="4" fill="#10B981" style={{ filter: 'drop-shadow(0 0 4px #10B981)' }} />
+          <circle key={i} cx={x} cy={y} r="4" fill={ACCENT} style={{ filter: `drop-shadow(0 0 4px ${ACCENT})` }} />
         ))}
-
-        {/* Labels */}
         {AXES.map((a, i) => {
-          const [x, y] = getPoint(i, RADIUS + 24);
-          const anchor = x < CENTER - 5 ? 'end' : x > CENTER + 5 ? 'start' : 'middle';
+          const [x, y] = getPoint(i, RADIUS + 22);
           return (
-            <text key={i} x={x} y={y} textAnchor={anchor} dominantBaseline="middle"
+            <text key={i} x={x} y={y} textAnchor={x < CENTER - 5 ? 'end' : x > CENTER + 5 ? 'start' : 'middle'} dominantBaseline="middle"
               style={{ fontFamily: 'monospace', fontSize: '10px', fill: '#6B7280' }}>
               {a.label}
             </text>
           );
         })}
       </svg>
-    </motion.div>
+    </GlassCard>
   );
 }
 
-// ── Incident Report Cards ──────────────────────────────────────────────────
-const SEVERITY_COLORS = {
-  HIGH:     { bg: 'rgba(239,68,68,0.15)',   border: 'rgba(239,68,68,0.4)',   text: '#EF4444' },
-  MEDIUM:   { bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.35)', text: '#FBBF24' },
-  CRITICAL: { bg: 'rgba(239,68,68,0.2)',    border: 'rgba(239,68,68,0.6)',   text: '#FF4444' },
+// ── Incident cards ──────────────────────────────────────────────────
+const SEV_COLORS = {
+  HIGH:   { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#EF4444' },
+  MEDIUM: { bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)', text: '#FBBF24' },
 };
 
 const SEC_PROJECTS = [
-  {
-    id: 'phishing',
-    name: 'AI Phishing Detection Engine',
-    severity: 'HIGH',
-    category: 'THREAT DETECTION',
-    desc: 'Enterprise-grade ML+NLP classifier for real-time phishing URL detection. REST API inference pipeline + React.js threat dashboard.',
-    github: 'https://github.com/Rahul1613/AI-POWERED-PHISHING-DETECTION-ENGINE-ENTERPRISE-ACTIVE',
-    live: 'https://phishing-detection-ai-powered.netlify.app',
-    tech: 'Python · ML · NLP · React.js',
-  },
-  {
-    id: 'securepass',
-    name: 'SecurePass AI',
-    severity: 'MEDIUM',
-    category: 'CREDENTIAL SECURITY',
-    desc: 'AI-driven password strength analyzer with real-time entropy scoring, client-side cryptography, and ML-generated hardened suggestions.',
-    github: 'https://github.com/Rahul1613/SecurePass-AI-',
-    live: 'https://securepass-ai.netlify.app',
-    tech: 'Python · AI · Cryptography · React.js',
-  },
-  {
-    id: 'stego',
-    name: 'Image Steganography Tool',
-    severity: 'MEDIUM',
-    category: 'COVERT CHANNEL',
-    desc: 'LSB-based data hiding in images demonstrating information concealment techniques with zero visual degradation of carrier images.',
-    github: 'https://github.com/Rahul1613',
-    live: null,
-    tech: 'Python · Image Processing · Cryptography',
-  },
+  { name: 'AI Phishing Detection Engine', severity: 'HIGH', cat: 'THREAT DETECTION', tech: 'Python · ML · NLP · React.js', desc: 'ML+NLP classifier for real-time phishing URL detection. Enterprise REST API + React threat dashboard.', github: 'https://github.com/Rahul1613/AI-POWERED-PHISHING-DETECTION-ENGINE-ENTERPRISE-ACTIVE', live: 'https://phishing-detection-ai-powered.netlify.app' },
+  { name: 'SecurePass AI', severity: 'MEDIUM', cat: 'CREDENTIAL SECURITY', tech: 'Python · AI · Cryptography', desc: 'AI password strength analyzer with entropy scoring and client-side cryptography.', github: 'https://github.com/Rahul1613/SecurePass-AI-', live: 'https://securepass-ai.netlify.app' },
+  { name: 'Image Steganography Tool', severity: 'MEDIUM', cat: 'COVERT CHANNEL', tech: 'Python · Image Processing', desc: 'LSB-based data hiding in images with zero visual degradation of carrier images.', github: 'https://github.com/Rahul1613', live: null },
 ];
 
-function ScanLine() {
-  return (
-    <div style={{
-      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', overflow: 'hidden', borderRadius: 'inherit',
-    }}>
-      <style>{`
-        @keyframes scan { 0% { top: -2px; } 100% { top: 100%; } }
-        .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(16,185,129,0.4), transparent); animation: scan 2s linear infinite; }
-      `}</style>
-      <div className="scan-line" />
-    </div>
-  );
-}
-
 function IncidentCard({ project }) {
-  const sev = SEVERITY_COLORS[project.severity];
-
+  const sev = SEV_COLORS[project.severity];
   return (
-    <motion.div
-      variants={fadeUp}
-      whileHover={{ borderColor: 'rgba(16,185,129,0.4)', boxShadow: '0 0 28px rgba(16,185,129,0.1)' }}
-      style={{
-        background: '#0E1512', border: '1px solid rgba(16,185,129,0.15)',
-        borderRadius: '12px', padding: '24px', position: 'relative', overflow: 'hidden',
-        transition: 'border-color 0.2s, box-shadow 0.2s',
-      }}
-      className="incident-card"
-    >
-      <ScanLine />
-
-      {/* Header tags */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 10px', borderRadius: '4px', background: sev.bg, border: `1px solid ${sev.border}`, color: sev.text }}>
-          {project.severity}
-        </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 10px', borderRadius: '4px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10B981' }}>
-          {project.category}
-        </span>
+    <GlassCard style={{ padding: '20px', position: 'relative', overflow: 'hidden' }}>
+      {/* Scan line animation */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', borderRadius: 'inherit' }}>
+        <style>{`@keyframes scanCard { 0% { top: -2px; } 100% { top: 102%; } }`}</style>
+        <div style={{ position: 'absolute', left: 0, right: 0, height: '1px', background: `linear-gradient(90deg, transparent, ${ACCENT}50, transparent)`, animation: 'scanCard 3s linear infinite' }} />
       </div>
 
-      <h4 style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#F2F3F5', marginBottom: '8px', fontWeight: '600' }}>
-        {project.name}
-      </h4>
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6B7280', marginBottom: '12px' }}>
-        {project.tech}
-      </p>
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#9CA3AF', marginBottom: '16px', lineHeight: 1.6 }}>
-        {project.desc}
-      </p>
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '3px 8px', borderRadius: '4px', background: sev.bg, border: `1px solid ${sev.border}`, color: sev.text }}>{project.severity}</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '3px 8px', borderRadius: '4px', background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.18)', color: ACCENT }}>{project.cat}</span>
+      </div>
+
+      <h4 style={{ fontFamily: 'var(--font-grotesk, var(--font-body))', fontSize: '15px', fontWeight: '600', color: '#F2F3F5', marginBottom: '4px' }}>{project.name}</h4>
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#4B5563', marginBottom: '10px' }}>{project.tech}</p>
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#9CA3AF', marginBottom: '14px', lineHeight: 1.6 }}>{project.desc}</p>
 
       <div style={{ display: 'flex', gap: '8px' }}>
-        <a href={project.github} target="_blank" rel="noopener noreferrer"
-          style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#10B981', textDecoration: 'none', padding: '4px 10px', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '4px' }}>
-          GitHub ↗
-        </a>
-        {project.live && (
-          <a href={project.live} target="_blank" rel="noopener noreferrer"
-            style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#34D399', textDecoration: 'none', padding: '4px 10px', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '4px' }}>
-            Live ↗
-          </a>
-        )}
+        <a href={project.github} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: ACCENT, textDecoration: 'none', padding: '4px 10px', border: `1px solid ${ACCENT}30`, borderRadius: '5px' }}>GitHub ↗</a>
+        {project.live && <a href={project.live} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#34D399', textDecoration: 'none', padding: '4px 10px', border: '1px solid rgba(52,211,153,0.25)', borderRadius: '5px' }}>Live ↗</a>}
       </div>
-    </motion.div>
+    </GlassCard>
   );
 }
 
-// ── Mission Objective Callout ──────────────────────────────────────────────────
-function MissionObjective() {
+// ── Mission HUD ──────────────────────────────────────────────────
+function MissionHUD() {
   return (
-    <motion.div
-      variants={fadeUp}
-      style={{
-        background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.25)',
-        borderRadius: '16px', padding: '32px', marginBottom: '80px',
-        position: 'relative', overflow: 'hidden',
-      }}
-    >
-      {/* Corner brackets HUD style */}
-      <div style={{ position: 'absolute', top: '12px', left: '12px', width: '16px', height: '16px', borderTop: '2px solid #10B981', borderLeft: '2px solid #10B981' }} />
-      <div style={{ position: 'absolute', top: '12px', right: '12px', width: '16px', height: '16px', borderTop: '2px solid #10B981', borderRight: '2px solid #10B981' }} />
-      <div style={{ position: 'absolute', bottom: '12px', left: '12px', width: '16px', height: '16px', borderBottom: '2px solid #10B981', borderLeft: '2px solid #10B981' }} />
-      <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '16px', height: '16px', borderBottom: '2px solid #10B981', borderRight: '2px solid #10B981' }} />
+    <GlassCard style={{ padding: '28px', marginBottom: '48px', position: 'relative' }} hoverAccent={ACCENT}>
+      {/* Corner brackets */}
+      {[['top:10px','left:10px','borderTop','borderLeft'], ['top:10px','right:10px','borderTop','borderRight'], ['bottom:10px','left:10px','borderBottom','borderLeft'], ['bottom:10px','right:10px','borderBottom','borderRight']].map(([a, b, c, d], i) => (
+        <div key={i} style={{ position: 'absolute', [a.split(':')[0]]: a.split(':')[1], [b.split(':')[0]]: b.split(':')[1], width: '12px', height: '12px', [c]: `1px solid ${ACCENT}`, [d]: `1px solid ${ACCENT}` }} />
+      ))}
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: ACCENT, letterSpacing: '0.18em', marginBottom: '20px' }}>// MISSION OBJECTIVE</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {[
+          { priority: 'PRIMARY', label: 'SOC Analyst L1 (Entry Level)', sub: 'Threat monitoring · Incident response · Security ops', color: '#EF4444' },
+          { priority: 'SECONDARY', label: "Master's in Cybersecurity — Japan", sub: 'Planned: 2026–2028 · Advanced specialization', color: '#FBBF24' },
+        ].map(obj => (
+          <div key={obj.priority} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: obj.color, minWidth: '72px', paddingTop: '3px', letterSpacing: '0.1em' }}>{obj.priority}</span>
+            <div>
+              <p style={{ fontFamily: 'var(--font-grotesk, var(--font-body))', fontSize: '15px', fontWeight: '600', color: '#F2F3F5' }}>{obj.label}</p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#4B5563', marginTop: '2px' }}>{obj.sub}</p>
+            </div>
+          </div>
+        ))}
+      </div>
 
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', letterSpacing: '0.2em', marginBottom: '20px' }}>
-        // MISSION OBJECTIVE
-      </p>
-
-      <div style={{ display: 'grid', gap: '20px' }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#EF4444', minWidth: '80px', paddingTop: '2px' }}>PRIMARY</span>
-          <div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: '600', color: '#F2F3F5' }}>SOC Analyst L1 (Entry Level)</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6B7280', marginTop: '4px' }}>Threat monitoring · Incident response · Security operations</p>
-          </div>
-        </div>
-        <div style={{ height: '1px', background: 'rgba(16,185,129,0.1)' }} />
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#FBBF24', minWidth: '80px', paddingTop: '2px' }}>SECONDARY</span>
-          <div>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', fontWeight: '600', color: '#F2F3F5' }}>Master's in Cybersecurity — Japan</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#6B7280', marginTop: '4px' }}>Planned: 2026–2028 · Advanced specialization</p>
-          </div>
-        </div>
-        <div style={{ height: '1px', background: 'rgba(16,185,129,0.1)' }} />
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#10B981', minWidth: '80px', paddingTop: '2px' }}>STATUS</span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {[
-              { label: 'Network Security Basics', status: 'STUDYING' },
-              { label: 'TryHackMe SOC Level 1', status: 'IN PROGRESS' },
-              { label: 'OPSWAT Academy Portal', status: 'COMPLETED' },
-            ].map(item => (
-              <span key={item.label} style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '4px 10px', borderRadius: '4px', background: item.status === 'COMPLETED' ? 'rgba(16,185,129,0.15)' : 'rgba(251,191,36,0.1)', color: item.status === 'COMPLETED' ? '#10B981' : '#FBBF24', border: `1px solid ${item.status === 'COMPLETED' ? 'rgba(16,185,129,0.3)' : 'rgba(251,191,36,0.25)'}` }}>
-                {item.label} · {item.status}
-              </span>
-            ))}
-          </div>
+      {/* Currently learning */}
+      <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#4B5563', letterSpacing: '0.15em', marginBottom: '10px' }}>CURRENTLY STUDYING</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {[
+            { label: 'Network Security Basics', done: false },
+            { label: 'TryHackMe SOC Level 1', done: false },
+            { label: 'OPSWAT Academy', done: true },
+          ].map(item => (
+            <span key={item.label} style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '4px 10px', borderRadius: '5px', background: item.done ? 'rgba(16,185,129,0.1)' : 'rgba(251,191,36,0.08)', color: item.done ? ACCENT : '#FBBF24', border: `1px solid ${item.done ? ACCENT + '25' : 'rgba(251,191,36,0.2)'}` }}>
+              {item.done ? '✓ ' : '⏳ '}{item.label}
+            </span>
+          ))}
         </div>
       </div>
-    </motion.div>
+    </GlassCard>
   );
 }
 
-// ── Currently Learning Ticker ──────────────────────────────────────────────────
-function LearningTicker() {
-  const items = SECURITY_LEARNING;
-  const doubled = [...items, ...items]; // seamless loop
-
+// ── Ticker ──────────────────────────────────────────────────
+function Ticker() {
+  const doubled = [...SECURITY_LEARNING, ...SECURITY_LEARNING];
   return (
-    <div style={{ overflow: 'hidden', marginBottom: '80px', padding: '16px 0', borderTop: '1px solid rgba(16,185,129,0.1)', borderBottom: '1px solid rgba(16,185,129,0.1)' }}>
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', letterSpacing: '0.2em', marginBottom: '12px', paddingLeft: '0' }}>
-        {'>'} CURRENTLY LEARNING
-      </p>
-      <style>{`
-        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-      `}</style>
-      <div style={{ display: 'flex', animation: 'ticker 20s linear infinite', width: 'max-content' }}>
+    <div style={{ overflow: 'hidden', marginBottom: '48px', padding: '14px 0', borderTop: '1px solid rgba(16,185,129,0.08)', borderBottom: '1px solid rgba(16,185,129,0.08)' }}>
+      <style>{`@keyframes tickerRun { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
+      <div style={{ display: 'flex', animation: 'tickerRun 22s linear infinite', width: 'max-content' }}>
         {doubled.map((item, i) => (
-          <span key={i} style={{
-            fontFamily: 'var(--font-mono)', fontSize: '12px',
-            color: '#34D399', marginRight: '40px', whiteSpace: 'nowrap',
-          }}>
+          <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#34D399', marginRight: '48px', whiteSpace: 'nowrap' }}>
             {'/'} {item}
           </span>
         ))}
@@ -296,38 +207,31 @@ function LearningTicker() {
 }
 
 // ── Security Skills ──────────────────────────────────────────────────
-function SecuritySkillGrid() {
-  const catColors = {
-    tools:          { text: '#10B981', border: 'rgba(16,185,129,0.3)', bg: 'rgba(16,185,129,0.06)' },
-    programming:    { text: '#34D399', border: 'rgba(52,211,153,0.3)', bg: 'rgba(52,211,153,0.06)' },
-    ai_security:    { text: '#6EE7B7', border: 'rgba(110,231,183,0.3)', bg: 'rgba(110,231,183,0.06)' },
-    certifications: { text: '#FBBF24', border: 'rgba(251,191,36,0.3)', bg: 'rgba(251,191,36,0.06)' },
+function SecuritySkills() {
+  const catConfig = {
+    tools:          { label: '🔧 Tools',          color: ACCENT },
+    programming:    { label: '💻 Programming',    color: '#34D399' },
+    ai_security:    { label: '🤖 AI / Security',  color: '#6EE7B7' },
+    certifications: { label: '📜 Certifications', color: '#FBBF24' },
   };
-
-  const labels = { tools: '🔧 Tools', programming: '💻 Programming', ai_security: '🤖 AI/Security', certifications: '📜 Certifications' };
-
   return (
-    <motion.div variants={fadeUp} style={{ marginBottom: '80px' }}>
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', letterSpacing: '0.2em', marginBottom: '8px' }}>
-        // CAPABILITIES
-      </p>
-      <h3 style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(28px, 4vw, 48px)', color: '#F2F3F5', marginBottom: '32px', fontWeight: '700' }}>
-        Security Stack
-      </h3>
-      <div style={{ display: 'grid', gap: '24px' }}>
+    <motion.div variants={fadeUp} style={{ marginBottom: '60px' }}>
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#4B5563', letterSpacing: '0.18em', marginBottom: '8px' }}>CAPABILITIES</p>
+      <h3 style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(24px, 3.5vw, 38px)', fontWeight: '700', color: '#F2F3F5', letterSpacing: '-0.02em', marginBottom: '28px' }}>Security Stack</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
         {Object.entries(SECURITY_SKILLS).map(([cat, skills]) => {
-          const c = catColors[cat];
+          const cfg = catConfig[cat];
           return (
-            <div key={cat}>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: c.text, letterSpacing: '0.15em', marginBottom: '10px' }}>{labels[cat]}</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <GlassCard key={cat} style={{ padding: '18px' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: cfg.color, letterSpacing: '0.15em', marginBottom: '12px' }}>{cfg.label}</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {skills.map(s => (
-                  <span key={s} style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '5px 12px', borderRadius: '4px', background: c.bg, border: `1px solid ${c.border}`, color: c.text }}>
+                  <span key={s} style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '4px 10px', borderRadius: '5px', background: `${cfg.color}08`, border: `1px solid ${cfg.color}20`, color: cfg.color }}>
                     {s}
                   </span>
                 ))}
               </div>
-            </div>
+            </GlassCard>
           );
         })}
       </div>
@@ -340,72 +244,49 @@ export default function SecurityZone({ highlighted }) {
     <section
       id="security-zone"
       style={{
-        background: '#080A0C',
-        padding: '100px 5vw',
-        borderTop: highlighted ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.04)',
+        background: '#070809',
+        padding: '80px 5vw',
+        borderTop: `1px solid ${highlighted ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.04)'}`,
         position: 'relative',
       }}
     >
-      {/* Subtle scan-line texture */}
-      <div aria-hidden="true" style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: 'repeating-linear-gradient(0deg, rgba(16,185,129,0.012) 0px, transparent 1px, transparent 3px)',
-        backgroundSize: '100% 4px',
-      }} />
+      {/* Subtle scanline texture */}
+      <div aria-hidden style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg, rgba(16,185,129,0.008) 0px, transparent 1px, transparent 3px)', backgroundSize: '100% 4px', pointerEvents: 'none' }} />
+      {highlighted && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: `linear-gradient(90deg, ${ACCENT}, ${ACCENT}66, transparent)` }} />}
 
-      {highlighted && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, #10B981, #059669, transparent)' }} />
-      )}
-
-      <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          style={{ marginBottom: '60px', display: 'flex', alignItems: 'center', gap: '16px' }}
-        >
-          <div style={{ width: '40px', height: '2px', background: 'linear-gradient(90deg, #10B981, #059669)' }} />
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', letterSpacing: '0.2em' }}>PATH 03</span>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', position: 'relative' }}>
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: '52px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: ACCENT, boxShadow: `0 0 10px ${ACCENT}` }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: ACCENT, letterSpacing: '0.2em' }}>PATH 03 — SECURITY ANALYST</span>
         </motion.div>
 
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{
-            fontFamily: 'var(--font-grotesk, var(--font-display))',
-            fontSize: 'clamp(48px, 8vw, 100px)', fontWeight: '700',
-            color: '#F2F3F5', letterSpacing: '-0.03em',
-            lineHeight: 0.95, marginBottom: '80px',
-          }}
-        >
-          SECURITY<br />
-          <span style={{ background: 'linear-gradient(135deg, #10B981, #34D399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            ANALYST.
-          </span>
+        <motion.h2 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(40px, 6vw, 72px)', fontWeight: '800', color: '#F2F3F5', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: '64px' }}>
+          Security<br /><span style={{ color: '#374151' }}>Analyst.</span>
         </motion.h2>
 
-        <RadarChart />
-        <LearningTicker />
+        {/* Bento top row: Radar + Mission */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '16px', marginBottom: '48px' }}>
+          <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <RadarChart />
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <MissionHUD />
+          </motion.div>
+        </div>
 
-        {/* Incident Cards */}
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: '80px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', letterSpacing: '0.2em', marginBottom: '8px' }}>
-            // INCIDENT REPORTS
-          </p>
-          <h3 style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(28px, 4vw, 48px)', color: '#F2F3F5', marginBottom: '32px', fontWeight: '700' }}>
-            Security Projects
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-            {SEC_PROJECTS.map(p => <IncidentCard key={p.id} project={p} />)}
+        <Ticker />
+
+        {/* Incident cards */}
+        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: '48px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#4B5563', letterSpacing: '0.18em', marginBottom: '8px' }}>INCIDENT REPORTS</p>
+          <h3 style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(24px, 3.5vw, 38px)', fontWeight: '700', color: '#F2F3F5', letterSpacing: '-0.02em', marginBottom: '24px' }}>Security Projects</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+            {SEC_PROJECTS.map(p => <IncidentCard key={p.name} project={p} />)}
           </div>
         </motion.div>
 
-        <MissionObjective />
-
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <SecuritySkillGrid />
-        </motion.div>
+        <SecuritySkills />
       </div>
     </section>
   );

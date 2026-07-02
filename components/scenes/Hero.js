@@ -1,374 +1,302 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Hero() {
-  const canvasRef    = useRef(null);
-  const sectionRef   = useRef(null);
-  const contentRef   = useRef(null);
-  // Holographic card refs
-  const cardWrapRef  = useRef(null);  // outer container — tilts
-  const cardInnerRef = useRef(null);  // inner photo — counter-translates (depth)
-  const glareRef     = useRef(null);  // specular highlight
-  const holoPrismRef = useRef(null);  // rainbow shimmer
-  const rimRef       = useRef(null);  // edge rim light
+const ROLES = ['Full-Stack Developer', 'Growth Marketer', 'Security Analyst', 'Builder of 3 Live Products'];
 
-  const stateRef  = useRef({ scrollProgress: 0, targetX: 0, targetY: 0 });
-  const cardState = useRef({
-    // current (lerped)
-    rx: 0, ry: 0,
-    // target
-    tx: 0, ty: 0,
-    // glare position
-    gx: 50, gy: 50,
-    // holo shift
-    hx: 0, hy: 0,
-    inside: false,
-  });
-  const rafRef      = useRef(null);
-  const rendererRef = useRef(null);
-  const composerRef = useRef(null);
-  const groupRef    = useRef(null);
-  const bloomRef    = useRef(null);
-  const cardRafRef  = useRef(null);
+export default function Hero({ activePath }) {
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [displayed, setDisplayed] = useState('');
+  const [typing, setTyping] = useState(true);
 
-  // ── Three.js helix (left side background) ──────────────────
+  // Typewriter
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    let THREE, renderer, composer, scene, camera, group, bloomPass;
-
-    const init = async () => {
-      THREE = (await import('three')).default || await import('three');
-      const { EffectComposer } = await import('three/examples/jsm/postprocessing/EffectComposer.js');
-      const { RenderPass }     = await import('three/examples/jsm/postprocessing/RenderPass.js');
-      const { UnrealBloomPass }= await import('three/examples/jsm/postprocessing/UnrealBloomPass.js');
-
-      const W = window.innerWidth, H = window.innerHeight;
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(W, H);
-      renderer.setClearColor(0x000000, 1);
-      renderer.toneMapping = THREE.ReinhardToneMapping;
-      renderer.toneMappingExposure = 1.2;
-      rendererRef.current = renderer;
-
-      scene  = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
-      camera.position.set(0, 0, 8);
-      const light = new THREE.PointLight(0xffffff, 1.2);
-      light.position.set(2, 3, 4);
-      scene.add(light);
-
-      group = new THREE.Group();
-      group.position.set(-2.2, 0, 0);
-      scene.add(group);
-      groupRef.current = group;
-
-      const makeHelix = (phase) => {
-        const pts = [];
-        for (let i = 0; i <= 200; i++) {
-          const t = i / 200;
-          const a = t * Math.PI * 2 * 6 + phase;
-          pts.push(new THREE.Vector3(Math.sin(a) * 0.5, t * 4 - 2, Math.cos(a) * 0.5));
-        }
-        return new THREE.CatmullRomCurve3(pts);
-      };
-
-      const mat1 = new THREE.MeshPhongMaterial({ color: 0x222222, emissive: 0x0a0a0a, emissiveIntensity: 0.5 });
-      const mat2 = new THREE.MeshPhongMaterial({ color: 0x111111 });
-      group.add(new THREE.Mesh(new THREE.TubeGeometry(makeHelix(0),       200, 0.035, 8, false), mat1));
-      group.add(new THREE.Mesh(new THREE.TubeGeometry(makeHelix(Math.PI), 200, 0.035, 8, false), mat2));
-
-      const rungMat = new THREE.MeshPhongMaterial({ color: 0xE8FF00, emissive: 0xE8FF00, emissiveIntensity: 0.7 });
-      for (let i = 0; i < 24; i++) {
-        const t = i / 24;
-        const a = t * Math.PI * 2 * 6;
-        const y = t * 4 - 2;
-        const p1 = new THREE.Vector3(Math.sin(a) * 0.5, y, Math.cos(a) * 0.5);
-        const p2 = new THREE.Vector3(-Math.sin(a) * 0.5, y, -Math.cos(a) * 0.5);
-        const len = p1.distanceTo(p2);
-        const mid = p1.clone().add(p2).multiplyScalar(0.5);
-        const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, len, 6), rungMat);
-        rung.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), p2.clone().sub(p1).normalize());
-        rung.position.copy(mid);
-        group.add(rung);
+    const target = ROLES[roleIndex];
+    let i = 0;
+    setDisplayed('');
+    setTyping(true);
+    const type = setInterval(() => {
+      i++;
+      setDisplayed(target.slice(0, i));
+      if (i === target.length) {
+        clearInterval(type);
+        setTyping(false);
+        setTimeout(() => {
+          // erase
+          let j = target.length;
+          const erase = setInterval(() => {
+            j--;
+            setDisplayed(target.slice(0, j));
+            if (j === 0) {
+              clearInterval(erase);
+              setRoleIndex(prev => (prev + 1) % ROLES.length);
+            }
+          }, 35);
+        }, 1800);
       }
+    }, 55);
+    return () => clearInterval(type);
+  }, [roleIndex]);
 
-      bloomPass = new UnrealBloomPass(new THREE.Vector2(W, H), 0.6, 0.4, 0.7);
-      bloomRef.current = bloomPass;
-      composer = new EffectComposer(renderer);
-      composer.addPass(new RenderPass(scene, camera));
-      composer.addPass(bloomPass);
-      composerRef.current = composer;
+  const accentMap = {
+    developer: '#3B82F6',
+    marketing: '#F59E0B',
+    security:  '#10B981',
+    all:       '#6366F1',
+  };
+  const accent = accentMap[activePath] || '#6366F1';
 
-      const onResize = () => {
-        const w = window.innerWidth, h = window.innerHeight;
-        camera.aspect = w / h; camera.updateProjectionMatrix();
-        renderer.setSize(w, h); composer.setSize(w, h);
-      };
-      window.addEventListener('resize', onResize);
-
-      const st = stateRef.current;
-      const tick = () => {
-        rafRef.current = requestAnimationFrame(tick);
-        const p = st.scrollProgress;
-        group.rotation.y += 0.003 + p * 0.01;
-        group.scale.setScalar(1 - p * 0.5);
-        group.position.x = -2.2 - p * 2;
-        if (bloomRef.current) bloomRef.current.strength = 0.6 * (1 - p);
-        composer.render();
-      };
-      tick();
-      return () => window.removeEventListener('resize', onResize);
-    };
-
-    init();
-    return () => { cancelAnimationFrame(rafRef.current); rendererRef.current?.dispose(); };
-  }, []);
-
-  // ── Holographic card — mouse interaction ───────────────────
-  useEffect(() => {
-    const wrap  = cardWrapRef.current;
-    const inner = cardInnerRef.current;
-    const glare = glareRef.current;
-    const holo  = holoPrismRef.current;
-    const rim   = rimRef.current;
-    if (!wrap || !inner || !glare) return;
-
-    const cs = cardState.current;
-    const LERP = 0.09;
-    const MAX_TILT = 22; // degrees
-
-    // Lerp loop — runs at 60fps
-    const lerpLoop = () => {
-      cardRafRef.current = requestAnimationFrame(lerpLoop);
-
-      // Smooth lerp toward target (or back to 0 when mouse leaves)
-      cs.rx += (cs.tx - cs.rx) * LERP;
-      cs.ry += (cs.ty - cs.ry) * LERP;
-      cs.gx += (cs.hx - cs.gx) * LERP;
-      cs.gy += (cs.hy - cs.gy) * LERP;
-
-      // Apply tilt to the wrap
-      wrap.style.transform = `perspective(900px) rotateX(${cs.rx}deg) rotateY(${cs.ry}deg)`;
-
-      // Photo moves OPPOSITE — creates window/depth illusion
-      const px = cs.ry * -0.55;
-      const py = cs.rx * 0.55;
-      inner.style.transform = `translate(${px}px, ${py}px) scale(1.06)`;
-
-      // Specular glare follows mouse exactly
-      if (glare) {
-        glare.style.setProperty('--gx', `${cs.gx}%`);
-        glare.style.setProperty('--gy', `${cs.gy}%`);
-        const gOpacity = cs.inside ? 1 : 0;
-        glare.style.opacity = String(gOpacity);
-      }
-
-      // Holographic shimmer: hue rotates based on tilt angle
-      if (holo) {
-        const hue = (cs.ry * 4 + cs.rx * 3 + 200) % 360;
-        const hue2 = (hue + 90) % 360;
-        holo.style.backgroundImage = `
-          linear-gradient(
-            ${115 + cs.ry * 2}deg,
-            hsla(${hue},100%,60%,0) 0%,
-            hsla(${hue},100%,60%,0.06) 25%,
-            hsla(${hue2},100%,60%,0.12) 50%,
-            hsla(${hue2 + 60},100%,60%,0.06) 75%,
-            hsla(${hue2 + 120},100%,60%,0) 100%
-          )
-        `;
-        holo.style.opacity = cs.inside ? '1' : '0';
-      }
-
-      // Rim light: edge glows based on direction
-      if (rim) {
-        const rimX = cs.ry * -1.5;
-        const rimY = cs.rx * 1.5;
-        const rimIntensity = Math.sqrt(cs.rx * cs.rx + cs.ry * cs.ry) / MAX_TILT;
-        rim.style.boxShadow = cs.inside
-          ? `inset ${rimX}px ${rimY}px 20px rgba(232,255,0,${rimIntensity * 0.25}),
-             ${-rimX * 0.4}px ${-rimY * 0.4}px 40px rgba(0,0,0,0.7)`
-          : '0 20px 60px rgba(0,0,0,0.5)';
-      }
-    };
-    lerpLoop();
-
-    const onMove = (e) => {
-      const rect = wrap.getBoundingClientRect();
-      // Normalized -1 to 1
-      const nx = ((e.clientX - rect.left) / rect.width  - 0.5) * 2;
-      const ny = ((e.clientY - rect.top)  / rect.height - 0.5) * 2;
-      // Clamp
-      const cx = Math.max(-1, Math.min(1, nx));
-      const cy = Math.max(-1, Math.min(1, ny));
-
-      cs.tx = cy * -MAX_TILT;
-      cs.ty = cx *  MAX_TILT;
-      // Glare position as percentage
-      cs.hx = ((e.clientX - rect.left) / rect.width)  * 100;
-      cs.hy = ((e.clientY - rect.top)  / rect.height) * 100;
-      cs.inside = true;
-    };
-
-    const onLeave = () => {
-      cs.tx = 0; cs.ty = 0;
-      cs.hx = 50; cs.hy = 50;
-      cs.inside = false;
-    };
-
-    wrap.addEventListener('mousemove', onMove);
-    wrap.addEventListener('mouseleave', onLeave);
-
-    return () => {
-      cancelAnimationFrame(cardRafRef.current);
-      wrap.removeEventListener('mousemove', onMove);
-      wrap.removeEventListener('mouseleave', onLeave);
-    };
-  }, []);
-
-  // ── GSAP ScrollTrigger pin ─────────────────────────────────
-  useEffect(() => {
-    const setup = async () => {
-      const { gsap }          = await import('gsap');
-      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
-      gsap.registerPlugin(ScrollTrigger);
-
-      const section = sectionRef.current;
-      const content = contentRef.current;
-      const card    = cardWrapRef.current;
-      if (!section) return;
-
-      const waitForLenis = () => new Promise((res) => {
-        const t = setInterval(() => { if (window.__lenis) { clearInterval(t); res(); } }, 50);
-      });
-      await waitForLenis();
-
-      ScrollTrigger.scrollerProxy(document.body, {
-        scrollTop(val) {
-          if (window.__lenis) {
-            if (val !== undefined) window.__lenis.scrollTo(val, { immediate: true });
-            return window.__lenis.scroll;
-          }
-          return document.body.scrollTop;
-        },
-        getBoundingClientRect() {
-          return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-        },
-      });
-
-      window.__lenis?.on('scroll', ScrollTrigger.update);
-
-      ScrollTrigger.create({
-        trigger: section,
-        start: 'top top',
-        end: '+=220%',
-        pin: true,
-        anticipatePin: 1,
-        onUpdate: (self) => {
-          stateRef.current.scrollProgress = self.progress;
-
-          if (content) {
-            const t = Math.max(0, (self.progress - 0.35) / 0.65);
-            content.style.opacity = String(Math.max(0, 1 - t * 1.6));
-            content.style.transform = `translateY(${-50 * t}px)`;
-          }
-
-          // Card drifts upward on scroll
-          if (card) {
-            const y = self.progress * -160;
-            const sc = 1 - self.progress * 0.2;
-            const op = Math.max(0, 1 - self.progress * 2.4);
-            card.style.marginTop   = `${y}px`;
-            card.style.scale       = String(sc);
-            card.style.opacity     = String(op);
-          }
-        },
-      });
-
-      ScrollTrigger.refresh();
-    };
-    const t = setTimeout(setup, 450);
-    return () => clearTimeout(t);
-  }, []);
+  const STATS = [
+    { label: 'Projects Shipped', value: '6+', icon: '⚡', accent: '#3B82F6' },
+    { label: 'Internships', value: '4', icon: '💼', accent: '#F59E0B' },
+    { label: 'Live Products', value: '3', icon: '🚀', accent: '#10B981' },
+    { label: 'Years Building', value: '3+', icon: '🧠', accent: '#8B5CF6' },
+  ];
 
   return (
-    <section ref={sectionRef} className="scene hero" id="scene-hero" aria-label="Rahul Sisode — Portfolio">
-      {/* Helix canvas */}
-      <canvas ref={canvasRef} className="hero__canvas" aria-hidden="true" />
+    <section
+      id="hero"
+      style={{
+        minHeight: '100vh',
+        background: '#0A0B0D',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '80px 5vw 60px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Subtle radial gradient background */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.07) 0%, transparent 70%)',
+      }} />
 
-      {/* ── Holographic photo card ── */}
-      <div className="hero__card-zone" aria-hidden="true">
-        {/* Outer wrap — tilts with mouse */}
-        <div
-          ref={cardWrapRef}
-          className="holo-card"
-          style={{ willChange: 'transform, opacity, margin-top, scale' }}
-          role="img"
-          aria-label="Rahul Sisode portrait"
+      {/* Grid lines */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        backgroundImage: `
+          linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)
+        `,
+        backgroundSize: '72px 72px',
+      }} />
+
+      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', position: 'relative' }}>
+        {/* TOP ROW: Text + Photo */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '40px', alignItems: 'flex-start', marginBottom: '48px' }}>
+          {/* Left: Name + Role + CTA */}
+          <div>
+            {/* Status pill */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '28px', padding: '6px 14px', borderRadius: '100px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)' }}
+            >
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981', display: 'inline-block', animation: 'pulse 2s ease-in-out infinite' }} />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', letterSpacing: '0.12em' }}>
+                OPEN TO WORK
+              </span>
+            </motion.div>
+
+            {/* Name */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.7 }}
+              style={{
+                fontFamily: 'var(--font-grotesk, var(--font-display))',
+                fontSize: 'clamp(44px, 7vw, 96px)',
+                fontWeight: '800',
+                color: '#F8F9FA',
+                letterSpacing: '-0.035em',
+                lineHeight: 0.92,
+                marginBottom: '24px',
+              }}
+            >
+              RAHUL<br />
+              HIRATSINGH<br />
+              <span style={{
+                background: `linear-gradient(135deg, ${accent}, ${accent}aa)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                transition: 'all 0.4s ease',
+              }}>
+                SISODE.
+              </span>
+            </motion.h1>
+
+            {/* Typewriter role */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              style={{ marginBottom: '32px', height: '28px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span style={{ fontFamily: 'var(--font-grotesk, var(--font-body))', fontSize: 'clamp(16px, 2vw, 22px)', color: '#9CA3AF', fontWeight: '400' }}>
+                {displayed}
+              </span>
+              <span style={{
+                display: 'inline-block', width: '2px', height: '22px',
+                background: accent, borderRadius: '2px',
+                animation: 'blink 1s step-end infinite',
+              }} />
+            </motion.div>
+
+            {/* Proof point */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '13px',
+                color: '#4B5563',
+                letterSpacing: '0.06em',
+                marginBottom: '36px',
+              }}
+            >
+              3 self-shipped products · 4 real internships · Zero fluff.
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}
+            >
+              <a
+                href="#path-select"
+                style={{
+                  fontFamily: 'var(--font-grotesk, var(--font-body))',
+                  fontSize: '14px', fontWeight: '600',
+                  padding: '12px 24px', borderRadius: '10px',
+                  background: accent, color: '#000',
+                  textDecoration: 'none', transition: 'opacity 0.2s, transform 0.2s',
+                  display: 'inline-block',
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                Choose Your Path →
+              </a>
+              <a
+                href="https://github.com/Rahul1613"
+                target="_blank" rel="noopener noreferrer"
+                style={{
+                  fontFamily: 'var(--font-grotesk, var(--font-body))',
+                  fontSize: '14px', fontWeight: '500',
+                  padding: '12px 24px', borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.05)', color: '#D1D5DB',
+                  textDecoration: 'none', border: '1px solid rgba(255,255,255,0.08)',
+                  transition: 'background 0.2s', display: 'inline-block',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.09)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+              >
+                GitHub ↗
+              </a>
+            </motion.div>
+          </div>
+
+          {/* Right: Photo card */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.7 }}
+            style={{ position: 'relative' }}
+          >
+            {/* Glow behind card */}
+            <div style={{
+              position: 'absolute', inset: '-20px',
+              background: `radial-gradient(ellipse at 50% 50%, ${accent}20, transparent 70%)`,
+              borderRadius: '28px',
+              pointerEvents: 'none',
+              transition: 'background 0.4s',
+            }} />
+            {/* Card */}
+            <div style={{
+              width: 'clamp(180px, 20vw, 280px)',
+              aspectRatio: '3/4',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              border: `1px solid ${accent}30`,
+              boxShadow: `0 0 40px ${accent}15, 0 24px 60px rgba(0,0,0,0.5)`,
+              background: '#111318',
+              position: 'relative',
+              transition: 'border-color 0.4s, box-shadow 0.4s',
+            }}>
+              <Image
+                src="/rahul-photo.jpg"
+                alt="Rahul Hiratsingh Sisode"
+                fill
+                sizes="280px"
+                style={{ objectFit: 'cover', objectPosition: 'center 10%' }}
+                priority
+              />
+              {/* Glass overlay at bottom */}
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                padding: '16px',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
+              }}>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#6B7280', letterSpacing: '0.15em' }}>
+                  Ratnagiri, Maharashtra
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* BENTO STATS GRID */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.6 }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '12px',
+          }}
         >
-          {/* Inner — counter-moves for depth parallax */}
-          <div ref={cardInnerRef} className="holo-card__inner" style={{ willChange: 'transform' }}>
-            <Image
-              src="/rahul-photo.jpg"
-              alt="Rahul Sisode"
-              fill
-              sizes="380px"
-              style={{ objectFit: 'cover', objectPosition: 'center 15%' }}
-              priority
-            />
-          </div>
-
-          {/* Specular glare — follows mouse */}
-          <div ref={glareRef} className="holo-card__glare" style={{ opacity: 0 }} aria-hidden="true" />
-
-          {/* Holographic prism shimmer */}
-          <div ref={holoPrismRef} className="holo-card__prism" style={{ opacity: 0 }} aria-hidden="true" />
-
-          {/* Rim light border */}
-          <div ref={rimRef} className="holo-card__rim" aria-hidden="true" />
-
-          {/* Static grain */}
-          <div className="holo-card__grain" aria-hidden="true" />
-
-          {/* Bottom info tag — floats in 3D */}
-          <div className="holo-card__tag" aria-hidden="true">
-            <span className="holo-card__tag-name">RAHUL SISODE</span>
-            <span className="holo-card__tag-role">AI &amp; FULL STACK DEVELOPER</span>
-          </div>
-        </div>
+          {STATS.map((stat) => (
+            <motion.div
+              key={stat.label}
+              whileHover={{ y: -3, scale: 1.02 }}
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: '14px',
+                padding: '20px',
+                display: 'flex', flexDirection: 'column', gap: '6px',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+                transition: 'border-color 0.2s',
+                cursor: 'default',
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = `${stat.accent}35`}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
+            >
+              <span style={{ fontSize: '18px' }}>{stat.icon}</span>
+              <p style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: '700', color: '#F2F3F5', lineHeight: 1 }}>
+                {stat.value}
+              </p>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#6B7280' }}>
+                {stat.label}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
 
-      {/* ── Text content ── */}
-      <div ref={contentRef} className="hero__content" style={{ willChange: 'opacity, transform' }}>
-        <span className="hero__eyebrow">001 &nbsp;/&nbsp; AI &amp; FULL STACK DEVELOPER</span>
-
-        <h1 className="hero__headline" aria-label="Rahul Sisode — AI and Full Stack Developer">
-          RAHUL<br />
-          <span className="accent">SISODE.</span>
-        </h1>
-
-        <p className="hero__sub">
-          B.E. AI &amp; ML &nbsp;·&nbsp; CGPA 6.57<br />
-          Django · React · Python · Full Stack
-        </p>
-
-        <div className="hero__badges">
-          <span className="hero__badge">Open to work</span>
-          <span className="hero__badge-dot" />
-          <span className="hero__badge">Ratnagiri, India</span>
-        </div>
-
-        <p className="hero__card-hint" aria-hidden="true">↗ hover the card</p>
-      </div>
-
-      {/* Scroll cue */}
-      <div className="scroll-cue" aria-hidden="true">
-        <span className="scroll-cue__text">SCROLL</span>
-        <div className="scroll-cue__line"><div className="scroll-cue__dot" /></div>
-      </div>
+      {/* CSS for cursor blink and status pulse */}
+      <style>{`
+        @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+        @keyframes pulse { 0%,100% { opacity:1; box-shadow: 0 0 8px #10B981; } 50% { opacity:0.7; box-shadow: 0 0 16px #10B981; } }
+      `}</style>
     </section>
   );
 }

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { CONTACT } from '../../lib/resumeData';
 
 const LINKS = [
-  { label: 'EMAIL', href: `mailto:${CONTACT.email}`, value: CONTACT.email, icon: '✉️' },
+  { label: 'EMAIL', href: `mailto:${CONTACT.email}`, value: CONTACT.email, icon: '✉️', cta: true },
   { label: 'PHONE', href: `tel:${CONTACT.phone}`, value: CONTACT.phone, icon: '📞' },
   { label: 'LINKEDIN', href: CONTACT.linkedin, value: 'linkedin.com/in/rahul-sisode', icon: '💼' },
   { label: 'GITHUB', href: CONTACT.github, value: 'github.com/Rahul1613', icon: '🐙' },
@@ -11,76 +11,88 @@ const LINKS = [
   { label: 'HYRINX', href: CONTACT.hyrinx, value: 'hyrinx.in', icon: '📣' },
 ];
 
-const stagger = { show: { transition: { staggerChildren: 0.07 } } };
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
-
 export default function ContactSection() {
   return (
-    <section id="contact" style={{ background: '#0A0B0D', padding: '100px 5vw 80px', borderTop: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
-      {/* Large background text */}
-      <div aria-hidden="true" style={{
-        position: 'absolute', bottom: '-40px', right: '-20px',
-        fontFamily: 'var(--font-display)', fontSize: 'clamp(120px, 20vw, 200px)',
-        color: 'rgba(255,255,255,0.015)', fontWeight: '900', lineHeight: 1,
-        pointerEvents: 'none', userSelect: 'none',
-      }}>
+    <section id="contact" style={{ background: '#080909', padding: '80px 5vw 60px', borderTop: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
+      {/* Background text */}
+      <div aria-hidden style={{ position: 'absolute', bottom: '-20px', right: '-10px', fontFamily: 'var(--font-display)', fontSize: 'clamp(80px, 15vw, 160px)', color: 'rgba(255,255,255,0.012)', fontWeight: '900', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
         CONNECT
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative' }}>
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: '60px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#E8FF00', letterSpacing: '0.2em', marginBottom: '8px' }}>
-            // CONTACT
-          </p>
-          <h2 style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(48px, 8vw, 100px)', fontWeight: '700', color: '#F2F3F5', letterSpacing: '-0.03em', lineHeight: 0.95, marginBottom: '20px' }}>
-            LET'S BUILD<br />
-            <span style={{ color: '#E8FF00' }}>SOMETHING REAL.</span>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', position: 'relative' }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: '52px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#4B5563', letterSpacing: '0.18em', marginBottom: '12px' }}>CONTACT</p>
+          <h2 style={{ fontFamily: 'var(--font-grotesk, var(--font-display))', fontSize: 'clamp(32px, 6vw, 68px)', fontWeight: '800', color: '#F2F3F5', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: '16px' }}>
+            Let's build<br />
+            <span style={{ color: '#374151' }}>something real.</span>
           </h2>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', color: '#6B7280', maxWidth: '440px' }}>
-            3 self-shipped products. 4 real internships. Zero fluff.
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: '#6B7280', maxWidth: '360px', lineHeight: 1.6 }}>
+            Available for full-time roles, internships, and open-source collaboration.
           </p>
         </motion.div>
 
-        <motion.div
-          variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px', marginBottom: '60px' }}
-        >
-          {LINKS.map(link => (
+        {/* Contact grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px', marginBottom: '52px' }}>
+          {LINKS.map((link, i) => (
             <motion.a
               key={link.label}
               href={link.href}
               target={link.href.startsWith('http') ? '_blank' : '_self'}
               rel="noopener noreferrer"
-              variants={fadeUp}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.06 }}
+              whileHover={{ scale: 1.02 }}
               style={{
-                display: 'flex', alignItems: 'center', gap: '16px',
-                background: '#111318', border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '12px', padding: '20px 24px', textDecoration: 'none',
+                display: 'flex', alignItems: 'center', gap: '14px',
+                background: link.cta ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.025)',
+                backdropFilter: 'blur(12px)',
+                border: link.cta ? '1px solid rgba(99,102,241,0.25)' : '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '12px', padding: '18px 20px', textDecoration: 'none',
                 transition: 'border-color 0.2s, background 0.2s',
               }}
-              whileHover={{ scale: 1.02, borderColor: 'rgba(232,255,0,0.25)', backgroundColor: 'rgba(232,255,0,0.04)' }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = 'rgba(232,255,0,0.2)';
+                e.currentTarget.style.background = 'rgba(232,255,0,0.03)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = link.cta ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.06)';
+                e.currentTarget.style.background = link.cta ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.025)';
+              }}
             >
-              <span style={{ fontSize: '20px' }}>{link.icon}</span>
+              <span style={{ fontSize: '18px' }}>{link.icon}</span>
               <div>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#4B5563', letterSpacing: '0.15em', marginBottom: '2px' }}>{link.label}</p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: '#4B5563', letterSpacing: '0.15em', marginBottom: '2px' }}>{link.label}</p>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#D1D5DB' }}>{link.value}</p>
               </div>
-              <span style={{ marginLeft: 'auto', color: '#4B5563', fontSize: '14px' }}>↗</span>
+              <span style={{ marginLeft: 'auto', color: '#374151', fontSize: '14px' }}>↗</span>
             </motion.a>
           ))}
+        </div>
+
+        {/* Big CTA button */}
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: '52px' }}>
+          <a
+            href={`mailto:${CONTACT.email}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '10px',
+              fontFamily: 'var(--font-grotesk, var(--font-body))', fontSize: '15px', fontWeight: '600',
+              padding: '14px 28px', borderRadius: '12px',
+              background: '#E8FF00', color: '#000',
+              textDecoration: 'none', transition: 'opacity 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none'; }}
+          >
+            Send an Email →
+          </a>
         </motion.div>
 
         {/* Footer */}
-        <div style={{ paddingTop: '32px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#374151' }}>
-            © 2026 Rahul Hiratsingh Sisode. Built end to end.
-          </p>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#374151' }}>
-            {CONTACT.location}
-          </p>
+        <div style={{ paddingTop: '28px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#374151' }}>© 2026 Rahul Hiratsingh Sisode. Built end to end.</p>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#374151' }}>B.E. AI & ML · Gharda Institute · 2026</p>
         </div>
       </div>
     </section>
