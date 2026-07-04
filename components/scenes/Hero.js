@@ -109,10 +109,10 @@ export default function Hero({ activePath }) {
       }} />
 
       <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 3 }}>
-        {/* TOP ROW: Text only (Photo removed) */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '64px' }}>
+        {/* TOP ROW: Text only (Photo removed, Left-aligned) */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', marginBottom: '64px' }}>
           {/* Name + Role + CTA */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '800px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: '800px' }}>
             {/* Status pill */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -139,7 +139,7 @@ export default function Hero({ activePath }) {
                 letterSpacing: '-0.035em',
                 lineHeight: 0.92,
                 marginBottom: '24px',
-                textAlign: 'center',
+                textAlign: 'left',
               }}
             >
               RAHUL<br />
@@ -159,7 +159,7 @@ export default function Hero({ activePath }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              style={{ marginBottom: '32px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              style={{ marginBottom: '32px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '6px' }}
             >
               <span style={{ fontFamily: 'var(--font-grotesk, var(--font-body))', fontSize: 'clamp(16px, 2vw, 22px)', color: '#9CA3AF', fontWeight: '400' }}>
                 {displayed}
@@ -182,7 +182,7 @@ export default function Hero({ activePath }) {
                 color: '#8E9AA8',
                 letterSpacing: '0.06em',
                 marginBottom: '36px',
-                textAlign: 'center',
+                textAlign: 'left',
               }}
             >
               3 self-shipped products · 4 real internships · Zero fluff.
@@ -193,7 +193,7 @@ export default function Hero({ activePath }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
-              style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}
+              style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'flex-start' }}
             >
               <a
                 href="#path-select"
