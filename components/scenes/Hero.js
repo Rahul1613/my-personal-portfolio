@@ -67,15 +67,41 @@ export default function Hero({ activePath }) {
         overflow: 'hidden',
       }}
     >
+      {/* ── Video background ── */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center 20%',
+          zIndex: 0,
+          opacity: 0.38,
+          filter: 'saturate(1.2) brightness(0.85)',
+        }}
+      >
+        <source src="/hero-bg.mp4" type="video/mp4" />
+      </video>
+
+      {/* ── Dark overlay so text stays readable ── */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+        background: 'linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.68) 100%)',
+      }} />
+
       {/* Subtle radial gradient background */}
       <div aria-hidden="true" style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
+        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
         background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.07) 0%, transparent 70%)',
       }} />
 
       {/* Grid lines */}
       <div aria-hidden="true" style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
+        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
         backgroundImage: `
           linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
           linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)
@@ -83,7 +109,7 @@ export default function Hero({ activePath }) {
         backgroundSize: '72px 72px',
       }} />
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', position: 'relative' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 3 }}>
         {/* TOP ROW: Text + Photo */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '40px', alignItems: 'flex-start', marginBottom: '48px' }}>
           {/* Left: Name + Role + CTA */}
