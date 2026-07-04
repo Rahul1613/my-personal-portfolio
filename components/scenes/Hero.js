@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ROLES = ['Full-Stack Developer', 'Growth Marketer', 'Security Analyst', 'Builder of 3 Live Products'];
@@ -110,10 +109,10 @@ export default function Hero({ activePath }) {
       }} />
 
       <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 3 }}>
-        {/* TOP ROW: Text + Photo */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '40px', alignItems: 'flex-start', marginBottom: '48px' }}>
-          {/* Left: Name + Role + CTA */}
-          <div>
+        {/* TOP ROW: Text only (Photo removed) */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '64px' }}>
+          {/* Name + Role + CTA */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '800px' }}>
             {/* Status pill */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -140,6 +139,7 @@ export default function Hero({ activePath }) {
                 letterSpacing: '-0.035em',
                 lineHeight: 0.92,
                 marginBottom: '24px',
+                textAlign: 'center',
               }}
             >
               RAHUL<br />
@@ -159,7 +159,7 @@ export default function Hero({ activePath }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              style={{ marginBottom: '32px', height: '28px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              style={{ marginBottom: '32px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
               <span style={{ fontFamily: 'var(--font-grotesk, var(--font-body))', fontSize: 'clamp(16px, 2vw, 22px)', color: '#9CA3AF', fontWeight: '400' }}>
                 {displayed}
@@ -179,9 +179,10 @@ export default function Hero({ activePath }) {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '13px',
-                color: '#4B5563',
+                color: '#8E9AA8',
                 letterSpacing: '0.06em',
                 marginBottom: '36px',
+                textAlign: 'center',
               }}
             >
               3 self-shipped products · 4 real internships · Zero fluff.
@@ -192,7 +193,7 @@ export default function Hero({ activePath }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
-              style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}
+              style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}
             >
               <a
                 href="#path-select"
@@ -227,54 +228,6 @@ export default function Hero({ activePath }) {
               </a>
             </motion.div>
           </div>
-
-          {/* Right: Photo card */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.7 }}
-            style={{ position: 'relative' }}
-          >
-            {/* Glow behind card */}
-            <div style={{
-              position: 'absolute', inset: '-20px',
-              background: `radial-gradient(ellipse at 50% 50%, ${accent}20, transparent 70%)`,
-              borderRadius: '28px',
-              pointerEvents: 'none',
-              transition: 'background 0.4s',
-            }} />
-            {/* Card */}
-            <div style={{
-              width: 'clamp(180px, 20vw, 280px)',
-              aspectRatio: '3/4',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              border: `1px solid ${accent}30`,
-              boxShadow: `0 0 40px ${accent}15, 0 24px 60px rgba(0,0,0,0.5)`,
-              background: '#111318',
-              position: 'relative',
-              transition: 'border-color 0.4s, box-shadow 0.4s',
-            }}>
-              <Image
-                src="/rahul-photo.jpg"
-                alt="Rahul Hiratsingh Sisode"
-                fill
-                sizes="280px"
-                style={{ objectFit: 'cover', objectPosition: 'center 10%' }}
-                priority
-              />
-              {/* Glass overlay at bottom */}
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                padding: '16px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
-              }}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#6B7280', letterSpacing: '0.15em' }}>
-                  Ratnagiri, Maharashtra
-                </p>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
         {/* BENTO STATS GRID */}
